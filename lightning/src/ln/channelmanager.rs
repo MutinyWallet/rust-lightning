@@ -5085,11 +5085,11 @@ where
 				self.finish_close_channel(shutdown_res);
 			}
 
-			#[cfg(feature = "std")]
+			#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 			let duration_since_epoch = std::time::SystemTime::now()
 				.duration_since(std::time::SystemTime::UNIX_EPOCH)
 				.expect("SystemTime::now() should come after SystemTime::UNIX_EPOCH");
-			#[cfg(not(feature = "std"))]
+			#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 			let duration_since_epoch = Duration::from_secs(
 				self.highest_seen_timestamp.load(Ordering::Acquire).saturating_sub(7200) as u64
 			);
@@ -7557,15 +7557,15 @@ where
 				let payment_paths = vec![
 					self.create_one_hop_blinded_payment_path(payment_secret),
 				];
-				#[cfg(not(feature = "no-std"))]
+				#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 				let builder = refund.respond_using_derived_keys(
 					payment_paths, payment_hash, expanded_key, entropy
 				)?;
-				#[cfg(feature = "no-std")]
+				#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 				let created_at = Duration::from_secs(
 					self.highest_seen_timestamp.load(Ordering::Acquire) as u64
 				);
-				#[cfg(feature = "no-std")]
+				#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 				let builder = refund.respond_using_derived_keys_no_std(
 					payment_paths, payment_hash, created_at, expanded_key, entropy
 				)?;
@@ -8936,15 +8936,15 @@ where
 						let payment_paths = vec![
 							self.create_one_hop_blinded_payment_path(payment_secret),
 						];
-						#[cfg(not(feature = "no-std"))]
+						#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 						let builder = invoice_request.respond_using_derived_keys(
 							payment_paths, payment_hash
 						);
-						#[cfg(feature = "no-std")]
+						#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 						let created_at = Duration::from_secs(
 							self.highest_seen_timestamp.load(Ordering::Acquire) as u64
 						);
-						#[cfg(feature = "no-std")]
+						#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 						let builder = invoice_request.respond_using_derived_keys_no_std(
 							payment_paths, payment_hash, created_at
 						);
@@ -8957,13 +8957,13 @@ where
 						let payment_paths = vec![
 							self.create_one_hop_blinded_payment_path(payment_secret),
 						];
-						#[cfg(not(feature = "no-std"))]
+						#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 						let builder = invoice_request.respond_with(payment_paths, payment_hash);
-						#[cfg(feature = "no-std")]
+						#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 						let created_at = Duration::from_secs(
 							self.highest_seen_timestamp.load(Ordering::Acquire) as u64
 						);
-						#[cfg(feature = "no-std")]
+						#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 						let builder = invoice_request.respond_with_no_std(
 							payment_paths, payment_hash, created_at
 						);

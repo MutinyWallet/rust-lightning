@@ -100,7 +100,7 @@ use crate::util::string::PrintableString;
 
 use crate::prelude::*;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 use std::time::SystemTime;
 
 pub(super) const IV_BYTES: &[u8; IV_LEN] = b"LDK Offer ~~~~~~";
@@ -463,7 +463,7 @@ impl Offer {
 	}
 
 	/// Whether the offer has expired.
-	#[cfg(feature = "std")]
+	#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 	pub fn is_expired(&self) -> bool {
 		self.contents.is_expired()
 	}
@@ -607,7 +607,7 @@ impl OfferContents {
 		self.absolute_expiry
 	}
 
-	#[cfg(feature = "std")]
+	#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 	pub(super) fn is_expired(&self) -> bool {
 		SystemTime::UNIX_EPOCH
 			.elapsed()
@@ -937,7 +937,7 @@ mod tests {
 		assert_eq!(offer.description(), PrintableString("foo"));
 		assert_eq!(offer.offer_features(), &OfferFeatures::empty());
 		assert_eq!(offer.absolute_expiry(), None);
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		assert!(!offer.is_expired());
 		assert_eq!(offer.paths(), &[]);
 		assert_eq!(offer.issuer(), None);
@@ -1197,7 +1197,7 @@ mod tests {
 			.absolute_expiry(future_expiry)
 			.build()
 			.unwrap();
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		assert!(!offer.is_expired());
 		assert_eq!(offer.absolute_expiry(), Some(future_expiry));
 		assert_eq!(offer.as_tlv_stream().absolute_expiry, Some(future_expiry.as_secs()));
@@ -1207,7 +1207,7 @@ mod tests {
 			.absolute_expiry(past_expiry)
 			.build()
 			.unwrap();
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		assert!(offer.is_expired());
 		assert_eq!(offer.absolute_expiry(), Some(past_expiry));
 		assert_eq!(offer.as_tlv_stream().absolute_expiry, Some(past_expiry.as_secs()));

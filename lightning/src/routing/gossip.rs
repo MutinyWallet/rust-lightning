@@ -48,7 +48,7 @@ use crate::sync::Mutex;
 use core::ops::{Bound, Deref};
 use core::str::FromStr;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// We remove stale channel directional info two weeks after the last update, per BOLT 7's
@@ -569,7 +569,7 @@ where U::Target: UtxoLookup, L::Target: Logger
 		// For no-std builds, we bury our head in the sand and do a full sync on each connection.
 		#[allow(unused_mut, unused_assignments)]
 		let mut gossip_start_time = 0;
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		{
 			gossip_start_time = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time must be > 1970").as_secs();
 			if self.should_request_full_sync(&their_node_id) {
@@ -1667,7 +1667,7 @@ impl<L: Deref> NetworkGraph<L> where L::Target: Logger {
 
 		#[allow(unused_mut, unused_assignments)]
 		let mut announcement_received_time = 0;
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		{
 			announcement_received_time = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time must be > 1970").as_secs();
 		}
@@ -1694,9 +1694,9 @@ impl<L: Deref> NetworkGraph<L> where L::Target: Logger {
 	///
 	/// The channel and any node for which this was their last channel are removed from the graph.
 	pub fn channel_failed_permanent(&self, short_channel_id: u64) {
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		let current_time_unix = Some(SystemTime::now().duration_since(UNIX_EPOCH).expect("Time must be > 1970").as_secs());
-		#[cfg(not(feature = "std"))]
+		#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 		let current_time_unix = None;
 
 		self.channel_failed_permanent_with_time(short_channel_id, current_time_unix)
@@ -1717,9 +1717,9 @@ impl<L: Deref> NetworkGraph<L> where L::Target: Logger {
 	/// Marks a node in the graph as permanently failed, effectively removing it and its channels
 	/// from local storage.
 	pub fn node_failed_permanent(&self, node_id: &PublicKey) {
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		let current_time_unix = Some(SystemTime::now().duration_since(UNIX_EPOCH).expect("Time must be > 1970").as_secs());
-		#[cfg(not(feature = "std"))]
+		#[cfg(any(not(feature = "std"), target_arch = "wasm32"))]
 		let current_time_unix = None;
 
 		let node_id = NodeId::from_pubkey(node_id);
@@ -1747,7 +1747,6 @@ impl<L: Deref> NetworkGraph<L> where L::Target: Logger {
 		}
 	}
 
-	#[cfg(feature = "std")]
 	/// Removes information about channels that we haven't heard any updates about in some time.
 	/// This can be used regularly to prune the network graph of channels that likely no longer
 	/// exist.
@@ -1764,6 +1763,7 @@ impl<L: Deref> NetworkGraph<L> where L::Target: Logger {
 	///
 	/// This method is only available with the `std` feature. See
 	/// [`NetworkGraph::remove_stale_channels_and_tracking_with_time`] for `no-std` use.
+	#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 	pub fn remove_stale_channels_and_tracking(&self) {
 		let time = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time must be > 1970").as_secs();
 		self.remove_stale_channels_and_tracking_with_time(time);
@@ -1890,11 +1890,11 @@ impl<L: Deref> NetworkGraph<L> where L::Target: Logger {
 			});
 		}
 
-		#[cfg(all(feature = "std", not(test), not(feature = "_test_utils")))]
+		#[cfg(all(feature = "std", not(target_arch="wasm32"), not(test), not(feature = "_test_utils")))]
 		{
 			// Note that many tests rely on being able to set arbitrarily old timestamps, thus we
 			// disable this check during tests!
-			let time = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time must be > 1970").as_secs();
+			let time = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).expect("Time must be > 1970").as_secs();
 			if (msg.timestamp as u64) < time - STALE_CHANNEL_UPDATE_AGE_LIMIT_SECS {
 				return Err(LightningError{err: "channel_update is older than two weeks old".to_owned(), action: ErrorAction::IgnoreAndLog(Level::Gossip)});
 			}
@@ -2340,7 +2340,7 @@ pub(crate) mod tests {
 			Err(e) => assert_eq!(e.err, "Already have chain-validated channel")
 		};
 
-		#[cfg(feature = "std")]
+		#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
 		{
 			use std::time::{SystemTime, UNIX_EPOCH};
 

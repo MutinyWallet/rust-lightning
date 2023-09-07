@@ -370,11 +370,11 @@ macro_rules! define_run_body {
 			if should_prune {
 				// The network graph must not be pruned while rapid sync completion is pending
 				if let Some(network_graph) = $gossip_sync.prunable_network_graph() {
-					#[cfg(feature = "std")] {
+					#[cfg(all(feature = "std", not(target_arch = "wasm32")))] {
 						log_trace!($logger, "Pruning and persisting network graph.");
 						network_graph.remove_stale_channels_and_tracking();
 					}
-					#[cfg(not(feature = "std"))] {
+					#[cfg(any(not(feature = "std"), target_arch = "wasm32"))] {
 						log_warn!($logger, "Not pruning network graph, consider enabling `std` or doing so manually with remove_stale_channels_and_tracking_with_time.");
 						log_trace!($logger, "Persisting network graph.");
 					}
