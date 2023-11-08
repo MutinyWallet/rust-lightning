@@ -4153,7 +4153,8 @@ impl<SP: Deref> Channel<SP> where
 				})
 			}
 		} else {
-			Err(ChannelError::Close("Peer attempted to reestablish channel with a very old remote commitment transaction".to_owned()))
+			log_error!(logger, "Peer attempted to reestablish channel with a very old remote commitment transaction");
+			panic!("Peer attempted to reestablish channel with a very old remote commitment transaction");
 		}
 	}
 
