@@ -4094,7 +4094,8 @@ impl<SP: Deref> Channel<SP> where
 				Some(self.get_last_revoke_and_ack())
 			}
 		} else {
-			return Err(ChannelError::Close("Peer attempted to reestablish channel with a very old local commitment transaction".to_owned()));
+			log_error!(logger, "Peer attempted to reestablish channel with a very old local commitment transaction");
+			panic!("Peer attempted to reestablish channel with a very old local commitment transaction");
 		};
 
 		// We increment cur_counterparty_commitment_transaction_number only upon receipt of
